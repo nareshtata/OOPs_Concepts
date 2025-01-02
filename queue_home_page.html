@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queue Visualization</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        .queue-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .queue-item {
+            width: 50px;
+            height: 50px;
+            margin: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: lightblue;
+            border: 1px solid blue;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Queue Visualization</h1>
+    <div>
+        <input type="text" id="element" placeholder="Enter element">
+        <button onclick="enqueue()">Enqueue</button>
+        <button onclick="dequeue()">Dequeue</button>
+        <button onclick="peek()">Peek</button>
+    </div>
+    <div id="message"></div>
+    <div class="queue-container" id="queue"></div>
+
+    <script>
+        const apiUrl = "http://127.0.0.1:5000";
+
+        async function enqueue() {
+            const element = document.getElementById('element').value;
+            const response = await fetch(`${apiUrl}/enqueue`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ element })
+            });
+            const data = await response.json();
+            document.getElementById('message').innerText = data.message;
+            updateQueue(data.queue);
+        }
+
+        async function dequeue() {
+            const response = await fetch(`${apiUrl}/dequeue`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            document.getElementById('message').innerText = data.message || data.error;
+            updateQueue(data.queue || []);
+        }
+
+        async function peek() {
+            const response = await fetch(`${apiUrl}/peek`);
+            const data = await response.json();
+            document.getElementById('message').innerText = data.front || data.error;
+        }
+
+        async function fetchQueue() {
+            const response = await fetch(`${apiUrl}/queue`);
+            const data = await response.json();
+            updateQueue(data.queue);
+        }
+
+        function updateQueue(queue) {
+            const queueContainer = document.getElementById('queue');
+            queueContainer.innerHTML = '';
+            queue.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'queue-item';
+                div.innerText = item;
+                queueContainer.appendChild(div);
+            });
+        }
+
+        // Fetch initial queue state
+        fetchQueue();
+    </script>
+</body>
+</html>
